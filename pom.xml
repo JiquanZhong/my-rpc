@@ -10,9 +10,11 @@
     <packaging>pom</packaging>
     <modules>
         <module>rpc-manager</module>
-        <module>rpc-demo</module>
-        <module>rpc-framework</module>
-
+        <module>rpc-demo/rpc-api</module>
+        <module>rpc-demo/rpc-consumer-demo</module>
+        <module>rpc-demo/rpc-provider-demo</module>
+        <module>rpc-framework/rpc-common</module>
+        <module>rpc-framework/rpc-core</module>
     </modules>
 
     <properties>
@@ -70,6 +72,11 @@
                 <groupId>com.caucho</groupId>
                 <artifactId>hessian</artifactId>
                 <version>${hession.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
