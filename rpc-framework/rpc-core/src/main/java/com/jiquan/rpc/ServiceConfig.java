@@ -5,7 +5,9 @@ package com.jiquan.rpc;
  * @year 2023
  */
 public class ServiceConfig<T> {
+	// the service interface that the provider has implemented
 	private Class<T> interfaceProvider;
+	// the instance of interface
 	private Object ref;
 
 	public ServiceConfig() {
