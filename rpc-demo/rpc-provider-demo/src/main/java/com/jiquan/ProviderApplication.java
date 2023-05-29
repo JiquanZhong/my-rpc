@@ -4,7 +4,7 @@ import com.jiquan.api.HelloAPI;
 import com.jiquan.impl.HelloImplAPI;
 import com.jiquan.rpc.ProtocolConfig;
 import com.jiquan.rpc.discovery.RegistryConfig;
-import com.jiquan.rpc.RpcBootStrap;
+import com.jiquan.rpc.RpcBootstrap;
 import com.jiquan.rpc.ServiceConfig;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,7 +19,7 @@ public class ProviderApplication {
 		service.setInterface(HelloAPI.class);
 		service.setRef(new HelloImplAPI());
 
-		RpcBootStrap.getInstance()
+		RpcBootstrap.getInstance()
 				// registry the service in zookeeper
 				.registry(new RegistryConfig("zookeeper://10.188.78.86:2181,10.188.78.86:2182,10.188.78.86:2183"))
 				// put the configuration online

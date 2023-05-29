@@ -10,14 +10,6 @@ public class ServiceConfig<T> {
 	// the instance of interface
 	private Object ref;
 
-	public ServiceConfig() {
-	}
-
-	public ServiceConfig(Class<T> interfaceProvider, Object ref) {
-		this.interfaceProvider = interfaceProvider;
-		this.ref = ref;
-	}
-
 	public Class<T> getInterface() {
 		return interfaceProvider;
 	}

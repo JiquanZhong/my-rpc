@@ -30,7 +30,7 @@ public class NetUtils {
 						continue;
 					}
 					String ipAddress = addr.getHostAddress();
-					System.out.println("the LAN ip address is: " + ipAddress);
+					if(log.isDebugEnabled()) log.info("the LAN ip address is: {}", ipAddress);
 					return ipAddress;
 				}
 			}

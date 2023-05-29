@@ -1,6 +1,7 @@
 package com.jiquan.rpc;
 
 import com.jiquan.rpc.discovery.Registry;
+import com.jiquan.rpc.proxy.handler.RpcConsumerInvocationHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
@@ -24,20 +25,10 @@ public class ReferenceConfig<T> {
 
 	public T get() {
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		Class[] classes = new Class[]{interfaceRef};
-		Object helloProxy = Proxy.newProxyInstance(classLoader, classes, new InvocationHandler() {
-			@Override
-			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-				log.info("method-->{}",method.getName());
-				log.info("args-->{}", args);
-
-				InetSocketAddress address = registry.lookup(interfaceRef.getName());
-				if(log.isDebugEnabled()) log.debug("find the target service of {} {}", interfaceRef.getName(), address);
-				return null;
-			};
-
-		});
-		return (T) helloProxy;
+		Class<T>[] classes = new Class[]{interfaceRef};
+		InvocationHandler handler = new RpcConsumerInvocationHandler(registry, interfaceRef);
+		Object proxy = Proxy.newProxyInstance(classLoader, classes, handler);
+		return (T) proxy;
 	}
 
 	public Class<T> getInterfaceRef() {
