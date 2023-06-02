@@ -1,5 +1,6 @@
 package com.jiquan.rpc.channelHandler.handler;
 
+import com.jiquan.rpc.enumeration.RequestType;
 import com.jiquan.rpc.transport.message.MessageFormatConstant;
 import com.jiquan.rpc.transport.message.RequestPayload;
 import com.jiquan.rpc.transport.message.RpcRequest;
@@ -60,7 +61,6 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder{
 
 		short headLength = byteBuf.readShort();
 		int fullLength = byteBuf.readInt();
-		// todo 判断是不是心跳检测
 		byte requestType = byteBuf.readByte();
 		byte serializeType = byteBuf.readByte();
 		byte compressType = byteBuf.readByte();
@@ -72,8 +72,7 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder{
 		rpcRequest.setCompressType(compressType);
 		rpcRequest.setSerializeType(serializeType);
 
-		// todo 心跳请求没有负载，此处可以判断并直接返回
-		if( requestType == 2 ){
+		if( requestType == RequestType.HEARTBEAT.getId()){
 			return rpcRequest;
 		}
 

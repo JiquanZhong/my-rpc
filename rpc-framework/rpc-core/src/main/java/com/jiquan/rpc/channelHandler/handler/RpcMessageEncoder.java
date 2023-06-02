@@ -36,7 +36,7 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
 		byteBuf.writeShort(MessageFormatConstant.HEADER_LENGTH);
 		// cannot deal with the final length of msg, move the writer pointer forward for 4 bytes
 		// fill this field later
-		byteBuf.writerIndex(byteBuf.writerIndex() + 4);
+		byteBuf.writerIndex(byteBuf.writerIndex() + MessageFormatConstant.FULL_FIELD_LENGTH);
 		// 3 types should be filled
 		byteBuf.writeByte(rpcRequest.getRequestType());
 		byteBuf.writeByte(rpcRequest.getSerializeType());
@@ -45,17 +45,21 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
 		byteBuf.writeLong(rpcRequest.getRequestId());
 		// fill the request body
 		byte[] body = getBodyBytes(rpcRequest.getRequestPayload());
-		byteBuf.writeBytes(body);
+		if(body != null) byteBuf.writeBytes(body);
+
+		int bodyLength = body == null ? 0 : body.length;
 		// mark the current writer pointer
 		int writerIndex = byteBuf.writerIndex();
-		byteBuf.writerIndex(7);
-		byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + body.length);
+		byteBuf.writerIndex(MessageFormatConstant.MAGIC.length
+						   + MessageFormatConstant.VERSION_LENGTH + MessageFormatConstant.HEADER_FIELD_LENGTH
+						   );
+		byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
 		// move the writer pointer back to the marked position
 		byteBuf.writerIndex(writerIndex);
 	}
 
 	private byte[] getBodyBytes(RequestPayload requestPayload) {
-		// TODO 针对不同的消息类型需要做不同的处理，心跳的请求，没有payload
+		if(requestPayload == null) return null;
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ObjectOutputStream outputStream = new ObjectOutputStream(baos);

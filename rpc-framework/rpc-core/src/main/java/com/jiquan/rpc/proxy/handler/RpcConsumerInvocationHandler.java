@@ -5,6 +5,7 @@ import com.jiquan.exceptions.NetworkException;
 import com.jiquan.rpc.NettyBootstrapInitializer;
 import com.jiquan.rpc.RpcBootstrap;
 import com.jiquan.rpc.discovery.Registry;
+import com.jiquan.rpc.enumeration.RequestType;
 import com.jiquan.rpc.transport.message.RequestPayload;
 import com.jiquan.rpc.transport.message.RpcRequest;
 import io.netty.channel.Channel;
@@ -63,7 +64,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 		RpcRequest rpcRequest = RpcRequest.builder()
 				.requestId(1L)
 				.compressType((byte) 1)
-				.requestType((byte) 1)
+				.requestType(RequestType.REQUEST.getId())
 				.serializeType((byte) 1)
 				.requestPayload(requestPayload)
 				.build();
@@ -72,7 +73,6 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 		 * ------------------synchronization-------------------------
 		 */
 //                ChannelFuture channelFuture = channel.writeAndFlush(new Object()).await();
-		// 需要学习channelFuture的简单的api get 阻塞获取结果，getNow 获取当前的结果，如果未处理完成，返回null
 //                if(channelFuture.isDone()){
 //                    Object object = channelFuture.getNow();
 //                } else if( !channelFuture.isSuccess() ){

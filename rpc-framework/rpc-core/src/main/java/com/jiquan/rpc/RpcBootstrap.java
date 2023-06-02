@@ -1,5 +1,6 @@
 package com.jiquan.rpc;
 
+import com.jiquan.rpc.channelHandler.handler.MethodCallHandler;
 import com.jiquan.rpc.channelHandler.handler.RpcMessageDecoder;
 import com.jiquan.rpc.discovery.Registry;
 import com.jiquan.rpc.discovery.RegistryConfig;
@@ -37,7 +38,7 @@ public class RpcBootstrap {
 	// Connection cache, if you use a class like InetSocketAddress as the key, be sure to see if he has rewritten the equals method and toString method
 	public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
 	// Maintain published and exposed service list key-> fully qualified name of interface value -> ServiceConfig
-	private static final Map<String, ServiceConfig<?>> SERVICE_LIST = new ConcurrentHashMap<>(16);
+	public static final Map<String, ServiceConfig<?>> SERVICE_LIST = new ConcurrentHashMap<>(16);
 	// Define a global external pending completableFuture
 	public static final Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
 
@@ -130,7 +131,8 @@ public class RpcBootstrap {
 						protected void initChannel(SocketChannel socketChannel) throws Exception {
 							socketChannel.pipeline()
 									.addLast(new LoggingHandler())
-									.addLast(new RpcMessageDecoder());
+									.addLast(new RpcMessageDecoder())
+									.addLast(new MethodCallHandler());
 						}
 					});
 

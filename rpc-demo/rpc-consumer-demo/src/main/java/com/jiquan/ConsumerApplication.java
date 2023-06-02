@@ -24,7 +24,7 @@ public class ConsumerApplication {
 
 		// get the proxy of service
 		HelloAPI helloAPI = reference.get();
-		String sayHi = helloAPI.sayHello("Hello provider");
+		String sayHi = helloAPI.sayHello("This is parameter of method");
 		log.info("sayHi-->{}", sayHi);
 	}
 }

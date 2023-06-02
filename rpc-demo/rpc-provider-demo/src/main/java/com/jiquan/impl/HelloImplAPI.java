@@ -9,6 +9,6 @@ import com.jiquan.api.HelloAPI;
 public class HelloImplAPI implements HelloAPI {
 	@Override
 	public String sayHello(String msg) {
-		return "hi consumer: " + msg;
+		return "Provider: " + msg;
 	}
 }
