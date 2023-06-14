@@ -6,8 +6,10 @@ import com.jiquan.rpc.NettyBootstrapInitializer;
 import com.jiquan.rpc.RpcBootstrap;
 import com.jiquan.rpc.discovery.Registry;
 import com.jiquan.rpc.enumeration.RequestType;
+import com.jiquan.rpc.serialize.SerializerFactory;
 import com.jiquan.rpc.transport.message.RequestPayload;
 import com.jiquan.rpc.transport.message.RpcRequest;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
@@ -62,10 +64,10 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
 		// todo needs to process the request id and various types
 		RpcRequest rpcRequest = RpcRequest.builder()
-				.requestId(1L)
-				.compressType((byte) 1)
+				.requestId(RpcBootstrap.ID_GENERATOR.getId())
+				.compressType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
 				.requestType(RequestType.REQUEST.getId())
-				.serializeType((byte) 1)
+				.serializeType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
 				.requestPayload(requestPayload)
 				.build();
 

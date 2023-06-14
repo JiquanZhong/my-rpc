@@ -1,5 +1,8 @@
 package com.jiquan.rpc.channelHandler.handler;
 
+import com.jiquan.rpc.RpcBootstrap;
+import com.jiquan.rpc.serialize.Serializer;
+import com.jiquan.rpc.serialize.SerializerFactory;
 import com.jiquan.rpc.transport.message.MessageFormatConstant;
 import com.jiquan.rpc.transport.message.RequestPayload;
 import com.jiquan.rpc.transport.message.RpcRequest;
@@ -13,6 +16,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 /**
+ * <pre>
  *  0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21   22
  * +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
  * |    magic          |ver |head  len|    full length    | qt | ser|comp|              RequestId                |
@@ -21,11 +25,12 @@ import java.io.ObjectOutputStream;
  * |                                         body                                                                |
  * |                                                                                                             |
  * +--------------------------------------------------------------------------------------------------------+---+
+ * </pre>
  * @author ZHONG Jiquan
  * @year 2023
  */
 @Slf4j
-public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
+public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
 	@Override
 	protected void encode(ChannelHandlerContext channelHandlerContext, RpcRequest rpcRequest, ByteBuf byteBuf) throws Exception {
 		// 4 byte MAGIC
@@ -44,7 +49,9 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
 		// 8 bytes request id
 		byteBuf.writeLong(rpcRequest.getRequestId());
 		// fill the request body
-		byte[] body = getBodyBytes(rpcRequest.getRequestPayload());
+		Serializer serializer = SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getSerializer();
+		byte[] body = serializer.serialize(rpcRequest.getRequestPayload());
+
 		if(body != null) byteBuf.writeBytes(body);
 
 		int bodyLength = body == null ? 0 : body.length;
@@ -56,20 +63,9 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
 		byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
 		// move the writer pointer back to the marked position
 		byteBuf.writerIndex(writerIndex);
-	}
 
-	private byte[] getBodyBytes(RequestPayload requestPayload) {
-		if(requestPayload == null) return null;
-		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ObjectOutputStream outputStream = new ObjectOutputStream(baos);
-			outputStream.writeObject(requestPayload);
-
-			// TODO compress
-			return baos.toByteArray();
-		} catch (IOException e) {
-			log.error("error when serializing the msg");
-			throw new RuntimeException(e);
+		if(log.isDebugEnabled()){
+			log.debug("Encapsulation of request [{}] is done",rpcRequest.getRequestId());
 		}
 	}
 }

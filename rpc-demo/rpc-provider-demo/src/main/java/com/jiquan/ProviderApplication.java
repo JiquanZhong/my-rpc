@@ -23,7 +23,7 @@ public class ProviderApplication {
 				// registry the service in zookeeper
 				.registry(new RegistryConfig("zookeeper://10.188.78.86:2181,10.188.78.86:2182,10.188.78.86:2183"))
 				// put the configuration online
-				.protocol(new ProtocolConfig("jdk"))
+				.protocol(new ProtocolConfig("hessian"))
 				// initialize the service
 				.publish(service)
 				// start the service

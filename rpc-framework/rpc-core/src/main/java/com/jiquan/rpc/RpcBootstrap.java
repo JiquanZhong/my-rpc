@@ -1,7 +1,9 @@
 package com.jiquan.rpc;
 
+import com.jiquan.IdGenerator;
 import com.jiquan.rpc.channelHandler.handler.MethodCallHandler;
-import com.jiquan.rpc.channelHandler.handler.RpcMessageDecoder;
+import com.jiquan.rpc.channelHandler.handler.RpcRequestDecoder;
+import com.jiquan.rpc.channelHandler.handler.RpcResponseEncoder;
 import com.jiquan.rpc.discovery.Registry;
 import com.jiquan.rpc.discovery.RegistryConfig;
 import io.netty.bootstrap.ServerBootstrap;
@@ -33,6 +35,9 @@ public class RpcBootstrap {
 	private RegistryConfig registryConfig;
 	private ProtocolConfig protocolConfig;
 	private int port = 8088;
+	public static final IdGenerator ID_GENERATOR = new IdGenerator(1, 2);
+	public static String SERIALIZE_TYPE = "hessian";
+
 	private Registry registry;
 
 	// Connection cache, if you use a class like InetSocketAddress as the key, be sure to see if he has rewritten the equals method and toString method
@@ -131,8 +136,10 @@ public class RpcBootstrap {
 						protected void initChannel(SocketChannel socketChannel) throws Exception {
 							socketChannel.pipeline()
 									.addLast(new LoggingHandler())
-									.addLast(new RpcMessageDecoder())
-									.addLast(new MethodCallHandler());
+									.addLast(new RpcRequestDecoder())
+									.addLast(new MethodCallHandler())
+									.addLast(new RpcResponseEncoder());
+
 						}
 					});
 
