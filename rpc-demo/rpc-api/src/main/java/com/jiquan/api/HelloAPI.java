@@ -1,9 +1,12 @@
 package com.jiquan.api;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author ZHONG Jiquan
  * @year 2023
  */
 public interface HelloAPI {
-	String sayHello(String msg);
+	List sayHello(String msg);
 }

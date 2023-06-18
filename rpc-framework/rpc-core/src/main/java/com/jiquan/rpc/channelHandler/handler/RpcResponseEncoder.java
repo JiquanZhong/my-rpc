@@ -32,14 +32,12 @@ public class RpcResponseEncoder extends MessageToByteEncoder<RpcResponse> {
 		byteBuf.writeByte(MessageFormatConstant.VERSION);
 		byteBuf.writeShort(MessageFormatConstant.HEADER_LENGTH);
 		byteBuf.writerIndex(byteBuf.writerIndex() + MessageFormatConstant.FULL_FIELD_LENGTH);
-		// 3个类型
 		byteBuf.writeByte(rpcResponse.getCode());
 		byteBuf.writeByte(rpcResponse.getSerializeType());
 		byteBuf.writeByte(rpcResponse.getCompressType());
-		// 8字节的请求id
 		byteBuf.writeLong(rpcResponse.getRequestId());
 
-		// 对响应做序列化
+		// Serialize the response
 		Serializer serializer = SerializerFactory
 				.getSerializer(rpcResponse.getSerializeType()).getSerializer();
 		byte[] body = serializer.serialize(rpcResponse.getBody());

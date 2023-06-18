@@ -89,7 +89,6 @@ public class RpcResponseDecoder extends LengthFieldBasedFrameDecoder {
 		byte[] payload = new byte[bodyLength];
 		byteBuf.readBytes(payload);
 
-		// 有了字节数组之后就可以解压缩，反序列化
 		// todo 解压缩
 
 		Serializer serializer = SerializerFactory

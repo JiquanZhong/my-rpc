@@ -49,7 +49,7 @@ public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
 		// 8 bytes request id
 		byteBuf.writeLong(rpcRequest.getRequestId());
 		// fill the request body
-		Serializer serializer = SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getSerializer();
+		Serializer serializer = SerializerFactory.getSerializer(rpcRequest.getSerializeType()).getSerializer();
 		byte[] body = serializer.serialize(rpcRequest.getRequestPayload());
 
 		if(body != null) byteBuf.writeBytes(body);

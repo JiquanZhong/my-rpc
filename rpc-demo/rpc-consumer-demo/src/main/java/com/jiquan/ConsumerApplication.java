@@ -6,6 +6,9 @@ import com.jiquan.rpc.discovery.RegistryConfig;
 import com.jiquan.rpc.RpcBootstrap;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author ZHONG Jiquan
  * @year 2023
@@ -24,7 +27,9 @@ public class ConsumerApplication {
 
 		// get the proxy of service
 		HelloAPI helloAPI = reference.get();
-		String sayHi = helloAPI.sayHello("This is parameter of method");
-		log.info("sayHi-->{}", sayHi);
+//		String sayHi = helloAPI.sayHello("This is parameter of method");
+//		log.info("sayHi-->{}", sayHi);
+		List<String> res = helloAPI.sayHello("info of consumer");
+		System.out.println(res);
 	}
 }

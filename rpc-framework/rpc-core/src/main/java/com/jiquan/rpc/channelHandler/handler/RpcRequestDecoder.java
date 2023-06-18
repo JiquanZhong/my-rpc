@@ -47,7 +47,8 @@ public class RpcRequestDecoder extends LengthFieldBasedFrameDecoder {
 
 	@Override
 	protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
-		Object decode = super.decode(ctx, in); if(decode instanceof ByteBuf byteBuf) {
+		Object decode = super.decode(ctx, in);
+		if(decode instanceof ByteBuf byteBuf) {
 			return decodeFrame(byteBuf);
 		} return null;
 	}
@@ -62,24 +63,31 @@ public class RpcRequestDecoder extends LengthFieldBasedFrameDecoder {
 			}
 		}
 
-		byte version = byteBuf.readByte(); if(version > MessageFormatConstant.VERSION) {
+		byte version = byteBuf.readByte();
+		if(version > MessageFormatConstant.VERSION) {
 			throw new RuntimeException("The requested version is not supported.");
 		}
 
-		short headLength = byteBuf.readShort(); int fullLength = byteBuf.readInt();
-		byte requestType = byteBuf.readByte(); byte serializeType = byteBuf.readByte();
-		byte compressType = byteBuf.readByte(); long requestId = byteBuf.readLong();
+		short headLength = byteBuf.readShort();
+		int fullLength = byteBuf.readInt();
+		byte requestType = byteBuf.readByte();
+		byte serializeType = byteBuf.readByte();
+		byte compressType = byteBuf.readByte();
+		long requestId = byteBuf.readLong();
 
 		// wrapping
-		RpcRequest rpcRequest = new RpcRequest(); rpcRequest.setRequestType(requestType);
-		rpcRequest.setCompressType(compressType); rpcRequest.setSerializeType(serializeType);
+		RpcRequest rpcRequest = new RpcRequest();
+		rpcRequest.setRequestType(requestType);
+		rpcRequest.setCompressType(compressType);
+		rpcRequest.setSerializeType(serializeType);
 		rpcRequest.setRequestId(requestId);
 
 		if(requestType == RequestType.HEARTBEAT.getId()) {
 			return rpcRequest;
 		}
 
-		int payloadLength = fullLength - headLength; byte[] payload = new byte[payloadLength];
+		int payloadLength = fullLength - headLength;
+		byte[] payload = new byte[payloadLength];
 		byteBuf.readBytes(payload);
 		// todo 解压缩
 
