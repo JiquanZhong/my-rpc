@@ -1,19 +1,15 @@
-package com.jiquan.rpc.channelHandler.handler;
+package com.jiquan.rpc.channelhandler.handler;
 
-import com.jiquan.rpc.RpcBootstrap;
+import com.jiquan.rpc.compress.Compressor;
+import com.jiquan.rpc.compress.CompressorFactory;
 import com.jiquan.rpc.serialize.Serializer;
 import com.jiquan.rpc.serialize.SerializerFactory;
 import com.jiquan.rpc.transport.message.MessageFormatConstant;
-import com.jiquan.rpc.transport.message.RequestPayload;
 import com.jiquan.rpc.transport.message.RpcRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 /**
  * <pre>
@@ -51,6 +47,12 @@ public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
 		// fill the request body
 		Serializer serializer = SerializerFactory.getSerializer(rpcRequest.getSerializeType()).getSerializer();
 		byte[] body = serializer.serialize(rpcRequest.getRequestPayload());
+
+		Compressor compressor = CompressorFactory.getCompressor(rpcRequest.getCompressType()).getCompressor();
+		body = compressor.compress(body);
+		if(log.isDebugEnabled()){
+			log.debug("Compress of request [{}] is done",rpcRequest.getRequestId());
+		}
 
 		if(body != null) byteBuf.writeBytes(body);
 

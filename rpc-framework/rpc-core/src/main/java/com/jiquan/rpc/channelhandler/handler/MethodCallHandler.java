@@ -1,4 +1,4 @@
-package com.jiquan.rpc.channelHandler.handler;
+package com.jiquan.rpc.channelhandler.handler;
 
 import com.jiquan.rpc.RpcBootstrap;
 import com.jiquan.rpc.ServiceConfig;

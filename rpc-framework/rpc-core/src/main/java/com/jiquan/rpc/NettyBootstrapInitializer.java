@@ -1,6 +1,6 @@
 package com.jiquan.rpc;
 
-import com.jiquan.rpc.channelHandler.ConsumerChannelInitializer;
+import com.jiquan.rpc.channelhandler.ConsumerChannelInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;

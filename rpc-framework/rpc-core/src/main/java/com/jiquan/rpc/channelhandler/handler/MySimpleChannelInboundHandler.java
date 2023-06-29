@@ -1,13 +1,11 @@
-package com.jiquan.rpc.channelHandler.handler;
+package com.jiquan.rpc.channelhandler.handler;
 
 import com.jiquan.rpc.RpcBootstrap;
 import com.jiquan.rpc.transport.message.RpcResponse;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.charset.Charset;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -19,7 +17,7 @@ public class MySimpleChannelInboundHandler extends SimpleChannelInboundHandler<R
 	@Override
 	protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse) throws Exception {
 		Object returnValue = rpcResponse.getBody();
-		CompletableFuture<Object> completableFuture = RpcBootstrap.PENDING_REQUEST.get(1L);
+		CompletableFuture<Object> completableFuture = RpcBootstrap.PENDING_REQUEST.get(rpcResponse.getRequestId());
 		completableFuture.complete(returnValue);
 		if(log.isDebugEnabled()){
 			log.debug("find the completableFuture of request {}",rpcResponse.getRequestId());

@@ -1,5 +1,7 @@
-package com.jiquan.rpc.channelHandler.handler;
+package com.jiquan.rpc.channelhandler.handler;
 
+import com.jiquan.rpc.compress.Compressor;
+import com.jiquan.rpc.compress.CompressorFactory;
 import com.jiquan.rpc.enumeration.RequestType;
 import com.jiquan.rpc.serialize.Serializer;
 import com.jiquan.rpc.serialize.SerializerFactory;
@@ -10,10 +12,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 
 /**
  * * <pre>
@@ -89,7 +87,14 @@ public class RpcRequestDecoder extends LengthFieldBasedFrameDecoder {
 		int payloadLength = fullLength - headLength;
 		byte[] payload = new byte[payloadLength];
 		byteBuf.readBytes(payload);
-		// todo 解压缩
+
+		// decompress
+		Compressor compressor = CompressorFactory.getCompressor(rpcRequest.getCompressType()).getCompressor();
+		payload = compressor.decompress(payload);
+
+		if(log.isDebugEnabled()) {
+			log.debug("the request [{}] is decompressed", rpcRequest.getRequestId());
+		}
 
 		// deserialization
 		Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();

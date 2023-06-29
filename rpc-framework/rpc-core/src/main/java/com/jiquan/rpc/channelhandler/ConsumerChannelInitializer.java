@@ -1,8 +1,8 @@
-package com.jiquan.rpc.channelHandler;
+package com.jiquan.rpc.channelhandler;
 
-import com.jiquan.rpc.channelHandler.handler.MySimpleChannelInboundHandler;
-import com.jiquan.rpc.channelHandler.handler.RpcRequestEncoder;
-import com.jiquan.rpc.channelHandler.handler.RpcResponseDecoder;
+import com.jiquan.rpc.channelhandler.handler.MySimpleChannelInboundHandler;
+import com.jiquan.rpc.channelhandler.handler.RpcRequestEncoder;
+import com.jiquan.rpc.channelhandler.handler.RpcResponseDecoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;

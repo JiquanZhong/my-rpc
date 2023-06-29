@@ -1,5 +1,7 @@
-package com.jiquan.rpc.channelHandler.handler;
+package com.jiquan.rpc.channelhandler.handler;
 
+import com.jiquan.rpc.compress.Compressor;
+import com.jiquan.rpc.compress.CompressorFactory;
 import com.jiquan.rpc.serialize.Serializer;
 import com.jiquan.rpc.serialize.SerializerFactory;
 import com.jiquan.rpc.transport.message.MessageFormatConstant;
@@ -42,7 +44,12 @@ public class RpcResponseEncoder extends MessageToByteEncoder<RpcResponse> {
 				.getSerializer(rpcResponse.getSerializeType()).getSerializer();
 		byte[] body = serializer.serialize(rpcResponse.getBody());
 
-		// todo 压缩
+		// compress
+		Compressor compressor = CompressorFactory.getCompressor(rpcResponse.getCompressType()).getCompressor();
+		body = compressor.compress(body);
+		if(log.isDebugEnabled()){
+			log.debug("Compress of response [{}] is done",rpcResponse.getRequestId());
+		}
 
 		if(body != null){
 			byteBuf.writeBytes(body);

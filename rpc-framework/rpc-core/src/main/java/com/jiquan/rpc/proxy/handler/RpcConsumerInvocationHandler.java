@@ -86,7 +86,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 		// 4. Write out the message
 		CompletableFuture<Object> completableFuture = new CompletableFuture<>();
 		// expose completableFuture
-		RpcBootstrap.PENDING_REQUEST.put(1L, completableFuture);
+		RpcBootstrap.PENDING_REQUEST.put(rpcRequest.getRequestId(), completableFuture);
 		channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
 			if (!promise.isSuccess()) {
 				completableFuture.completeExceptionally(promise.cause());
