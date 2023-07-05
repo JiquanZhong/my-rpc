@@ -2,6 +2,7 @@ package com.jiquan.rpc.discovery.impl;
 
 import com.jiquan.Constant;
 import com.jiquan.exceptions.DiscoveryException;
+import com.jiquan.rpc.RpcBootstrap;
 import com.jiquan.rpc.ServiceConfig;
 import com.jiquan.rpc.discovery.AbstractRegistry;
 import com.jiquan.utils.NetUtils;
@@ -60,7 +61,7 @@ public class NacosRegistry extends AbstractRegistry {
 			ZookeeperUtils.createNode(zookeeper, zookeeperNode, null, CreateMode.PERSISTENT);
 		}
 
-		String node = parentNode + "/" + NetUtils.getIp() + ":" + 8088;
+		String node = parentNode + "/" + NetUtils.getIp() + ":" + RpcBootstrap.PORT;
 		if(!ZookeeperUtils.exists(zookeeper, node, null)) {
 			ZookeeperNode zookeeperNode = new ZookeeperNode(node, null);
 			ZookeeperUtils.createNode(zookeeper, zookeeperNode, null, CreateMode.EPHEMERAL);
@@ -70,7 +71,7 @@ public class NacosRegistry extends AbstractRegistry {
 	}
 
 	@Override
-	public InetSocketAddress lookup(String serviceName) {
+	public List<InetSocketAddress> lookup(String serviceName) {
 		String serviceNode = Constant.BASE_PROVIDER_PATH + "/" + serviceName;
 		List<String> children = ZookeeperUtils.getChildren(zookeeper, serviceNode, null);
 		List<InetSocketAddress> inetSocketAddresses = children.stream().map(ipString -> {
@@ -83,6 +84,6 @@ public class NacosRegistry extends AbstractRegistry {
 		if(inetSocketAddresses.size() == 0)
 			throw new DiscoveryException("Cannot find the target host with: " + serviceNode);
 
-		return inetSocketAddresses.get(0);
+		return inetSocketAddresses;
 	}
 }

@@ -4,6 +4,7 @@ import com.jiquan.rpc.ServiceConfig;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * @author ZHONG Jiquan
@@ -25,5 +26,5 @@ public interface Registry {
 	 * @param serviceName the service name that the consumer want to find on registry center
 	 * @return
 	 */
-	InetSocketAddress lookup(String serviceName);
+	List<InetSocketAddress> lookup(String serviceName);
 }

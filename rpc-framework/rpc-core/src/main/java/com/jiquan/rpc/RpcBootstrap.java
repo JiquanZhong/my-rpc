@@ -6,6 +6,8 @@ import com.jiquan.rpc.channelhandler.handler.RpcRequestDecoder;
 import com.jiquan.rpc.channelhandler.handler.RpcResponseEncoder;
 import com.jiquan.rpc.discovery.Registry;
 import com.jiquan.rpc.discovery.RegistryConfig;
+import com.jiquan.rpc.loadbalance.LoadBalancer;
+import com.jiquan.rpc.loadbalance.impl.RoundRobinLoadBalancer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -34,9 +36,10 @@ public class RpcBootstrap {
 	private String appName = "default name";
 	private RegistryConfig registryConfig;
 	private ProtocolConfig protocolConfig;
-	private int port = 8088;
+	public static final int PORT = 8093;
 	public static final IdGenerator ID_GENERATOR = new IdGenerator(1, 2);
 	public static String SERIALIZE_TYPE = "hessian";
+	public static LoadBalancer LOAD_BALANCE;
 
 	private Registry registry;
 
@@ -75,6 +78,8 @@ public class RpcBootstrap {
 		// We actually hope that we can expand more different implementations in the future
 		// Try to use registryConfig to get a registration center, which is a bit of a factory design pattern
 		this.registry = registryConfig.getRegistry();
+		// the first time when the client tries to registry with registryConfig, RpcBootstrap will create a global instance LoadBalancer
+		LOAD_BALANCE = new RoundRobinLoadBalancer();
 		return this;
 	}
 
@@ -117,6 +122,10 @@ public class RpcBootstrap {
 		return this;
 	}
 
+	public Registry getRegistry(){
+		return registry;
+	}
+
 	/**
 	 * start the netty server
 	 */
@@ -144,7 +153,7 @@ public class RpcBootstrap {
 					});
 
 			// 4. Bind the serverBoostrap configuration to the port
-			ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
+			ChannelFuture channelFuture = serverBootstrap.bind(PORT).sync();
 
 			channelFuture.channel().closeFuture().sync();
 		}catch(InterruptedException e){

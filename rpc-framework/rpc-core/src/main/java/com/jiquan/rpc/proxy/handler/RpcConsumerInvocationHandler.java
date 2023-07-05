@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.nio.channels.Selector;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +40,10 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		// 1. Discovery services, from the registry, look for an available service
-		InetSocketAddress address = registry.lookup(interfaceRef.getName());
+//		InetSocketAddress address = registry.lookup(interfaceRef.getName());
+		// implementation of load balance
+		InetSocketAddress address = RpcBootstrap.LOAD_BALANCE.selectServiceAddress(interfaceRef.getName());
+
 		if (log.isDebugEnabled()) {
 			log.debug("consumer found an available service {} on {}.",
 					  interfaceRef.getName(), address);
