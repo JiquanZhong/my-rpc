@@ -7,7 +7,9 @@ import com.jiquan.rpc.channelhandler.handler.RpcResponseEncoder;
 import com.jiquan.rpc.discovery.Registry;
 import com.jiquan.rpc.discovery.RegistryConfig;
 import com.jiquan.rpc.loadbalance.LoadBalancer;
+import com.jiquan.rpc.loadbalance.impl.ConsistentHashLoadBalancer;
 import com.jiquan.rpc.loadbalance.impl.RoundRobinLoadBalancer;
+import com.jiquan.rpc.transport.message.RpcRequest;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -36,10 +38,11 @@ public class RpcBootstrap {
 	private String appName = "default name";
 	private RegistryConfig registryConfig;
 	private ProtocolConfig protocolConfig;
-	public static final int PORT = 8093;
+	public static final int PORT = 8090;
 	public static final IdGenerator ID_GENERATOR = new IdGenerator(1, 2);
 	public static String SERIALIZE_TYPE = "hessian";
 	public static LoadBalancer LOAD_BALANCE;
+	public static final ThreadLocal<RpcRequest> REQUEST_THREAD_LOCAL = new ThreadLocal<>();
 
 	private Registry registry;
 
@@ -79,7 +82,7 @@ public class RpcBootstrap {
 		// Try to use registryConfig to get a registration center, which is a bit of a factory design pattern
 		this.registry = registryConfig.getRegistry();
 		// the first time when the client tries to registry with registryConfig, RpcBootstrap will create a global instance LoadBalancer
-		LOAD_BALANCE = new RoundRobinLoadBalancer();
+		LOAD_BALANCE = new ConsistentHashLoadBalancer();
 		return this;
 	}
 

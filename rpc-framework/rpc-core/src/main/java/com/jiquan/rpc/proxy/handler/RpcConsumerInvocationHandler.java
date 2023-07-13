@@ -39,22 +39,6 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		// 1. Discovery services, from the registry, look for an available service
-//		InetSocketAddress address = registry.lookup(interfaceRef.getName());
-		// implementation of load balance
-		InetSocketAddress address = RpcBootstrap.LOAD_BALANCE.selectServiceAddress(interfaceRef.getName());
-
-		if (log.isDebugEnabled()) {
-			log.debug("consumer found an available service {} on {}.",
-					  interfaceRef.getName(), address);
-		}
-
-		// 2. Try to get an available channel
-		Channel channel = getAvailableChannel(address);
-		if (log.isDebugEnabled()) {
-			log.debug("Obtained the connection channel established with {}, ready to send data.", address);
-		}
-
 		/*
 		 * ------------------ Encapsulated message ---------------------------
 		 */
@@ -74,6 +58,29 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 				.serializeType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
 				.requestPayload(requestPayload)
 				.build();
+
+		RpcBootstrap.REQUEST_THREAD_LOCAL.set(rpcRequest);
+
+		// 1. Discovery services, from the registry, look for an available service
+		//		InetSocketAddress address = registry.lookup(interfaceRef.getName());
+		// implementation of load balance
+		InetSocketAddress address = RpcBootstrap.LOAD_BALANCE.selectServiceAddress(interfaceRef.getName());
+		// should remove the request ThreadLocal
+		RpcBootstrap.REQUEST_THREAD_LOCAL.remove();
+
+		if (log.isDebugEnabled()) {
+			log.debug("consumer found an available service {} on {}.",
+					  interfaceRef.getName(), address);
+		}
+
+		// 2. Try to get an available channel
+		Channel channel = getAvailableChannel(address);
+		if (log.isDebugEnabled()) {
+			log.debug("Obtained the connection channel established with {}, ready to send data.", address);
+		}
+
+
+		RpcBootstrap.SERIALIZE_TYPE = SerializerFactory.CODE_STRING_MAP.get(rpcRequest.getSerializeType());
 
 		/*
 		 * ------------------synchronization-------------------------
@@ -96,6 +103,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 				completableFuture.completeExceptionally(promise.cause());
 			}
 		});
+
 		// 5. Get the result of the response
 		return completableFuture.get(10, TimeUnit.SECONDS);
 	}

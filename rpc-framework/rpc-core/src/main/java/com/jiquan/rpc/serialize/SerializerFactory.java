@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SerializerFactory {
 	private final static ConcurrentHashMap<String, SerializerWrapper> SERIALIZE_CACHE = new ConcurrentHashMap<>(8);
 	private final static ConcurrentHashMap<Byte, SerializerWrapper> SERIALIZE_CODE_CACHE = new ConcurrentHashMap<>(8);
+	public final static ConcurrentHashMap<Byte, String> CODE_STRING_MAP = new ConcurrentHashMap<>(8);
 
 
 	static {
@@ -27,6 +28,10 @@ public class SerializerFactory {
 		SERIALIZE_CODE_CACHE.put((byte) 1, jdk);
 		SERIALIZE_CODE_CACHE.put((byte) 2, json);
 		SERIALIZE_CODE_CACHE.put((byte) 3, hessian);
+
+		CODE_STRING_MAP.put((byte) 1, "jdk");
+		CODE_STRING_MAP.put((byte) 2, "json");
+		CODE_STRING_MAP.put((byte) 3, "hessian");
 	}
 
 	public static SerializerWrapper getSerializer(String serializeType) {

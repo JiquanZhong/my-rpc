@@ -27,7 +27,7 @@ public class ConsumerApplication {
 
 		// get the proxy of service
 		HelloAPI helloAPI = reference.get();
-		for(int i = 0; i < 100; i++) {
+		for(int i = 0; i < 10; i++) {
 			List<String> res = helloAPI.sayHello("info of consumer");
 			System.out.println(res);
 		}
