@@ -48,12 +48,14 @@ public class RpcRequestDecoder extends LengthFieldBasedFrameDecoder {
 		Object decode = super.decode(ctx, in);
 		if(decode instanceof ByteBuf byteBuf) {
 			return decodeFrame(byteBuf);
-		} return null;
+		}
+		return null;
 	}
 
 	private Object decodeFrame(ByteBuf byteBuf) {
 		// 1. decode magic
-		byte[] magic = new byte[MessageFormatConstant.MAGIC.length]; byteBuf.readBytes(magic);
+		byte[] magic = new byte[MessageFormatConstant.MAGIC.length];
+		byteBuf.readBytes(magic);
 		// verify the magic
 		for(int i = 0; i < magic.length; i++) {
 			if(magic[i] != MessageFormatConstant.MAGIC[i]) {
@@ -72,6 +74,7 @@ public class RpcRequestDecoder extends LengthFieldBasedFrameDecoder {
 		byte serializeType = byteBuf.readByte();
 		byte compressType = byteBuf.readByte();
 		long requestId = byteBuf.readLong();
+		long timeStamp = byteBuf.readLong();
 
 		// wrapping
 		RpcRequest rpcRequest = new RpcRequest();
@@ -79,8 +82,9 @@ public class RpcRequestDecoder extends LengthFieldBasedFrameDecoder {
 		rpcRequest.setCompressType(compressType);
 		rpcRequest.setSerializeType(serializeType);
 		rpcRequest.setRequestId(requestId);
+		rpcRequest.setTimeStamp(timeStamp);
 
-		if(requestType == RequestType.HEARTBEAT.getId()) {
+		if( requestType == RequestType.HEARTBEAT.getId()){
 			return rpcRequest;
 		}
 
@@ -88,21 +92,24 @@ public class RpcRequestDecoder extends LengthFieldBasedFrameDecoder {
 		byte[] payload = new byte[payloadLength];
 		byteBuf.readBytes(payload);
 
-		// decompress
-		Compressor compressor = CompressorFactory.getCompressor(rpcRequest.getCompressType()).getCompressor();
-		payload = compressor.decompress(payload);
+		if(payload != null || payloadLength != 0){
+			// decompress
+			Compressor compressor = CompressorFactory.getCompressor(rpcRequest.getCompressType()).getCompressor();
+			payload = compressor.decompress(payload);
 
-		if(log.isDebugEnabled()) {
-			log.debug("the request [{}] is decompressed", rpcRequest.getRequestId());
-		}
+			if(log.isDebugEnabled()) {
+				log.debug("the request [{}] is decompressed", rpcRequest.getRequestId());
+			}
 
-		// deserialization
-		Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
-		RequestPayload requestPayload = serializer.deserialize(payload, RequestPayload.class);
-		rpcRequest.setRequestPayload(requestPayload);
+			// deserialization
+			Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
+			RequestPayload requestPayload = serializer.deserialize(payload, RequestPayload.class);
 
-		if(log.isDebugEnabled()) {
-			log.debug("the request [{}] is decoded", rpcRequest.getRequestId());
+			if(log.isDebugEnabled()) {
+				log.debug("the request [{}] is decoded", rpcRequest.getRequestId());
+			}
+
+			rpcRequest.setRequestPayload(requestPayload);
 		}
 
 		return rpcRequest;

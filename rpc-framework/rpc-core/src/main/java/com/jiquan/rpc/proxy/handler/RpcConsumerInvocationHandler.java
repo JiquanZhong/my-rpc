@@ -18,6 +18,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.nio.channels.Selector;
+import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +57,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 				.compressType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
 				.requestType(RequestType.REQUEST.getId())
 				.serializeType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
+				.timeStamp(new Date().getTime())
 				.requestPayload(requestPayload)
 				.build();
 

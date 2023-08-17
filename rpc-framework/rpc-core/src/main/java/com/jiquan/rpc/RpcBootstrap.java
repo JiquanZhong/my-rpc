@@ -4,11 +4,11 @@ import com.jiquan.IdGenerator;
 import com.jiquan.rpc.channelhandler.handler.MethodCallHandler;
 import com.jiquan.rpc.channelhandler.handler.RpcRequestDecoder;
 import com.jiquan.rpc.channelhandler.handler.RpcResponseEncoder;
+import com.jiquan.rpc.core.HeartbeatDetector;
 import com.jiquan.rpc.discovery.Registry;
 import com.jiquan.rpc.discovery.RegistryConfig;
 import com.jiquan.rpc.loadbalance.LoadBalancer;
-import com.jiquan.rpc.loadbalance.impl.ConsistentHashLoadBalancer;
-import com.jiquan.rpc.loadbalance.impl.RoundRobinLoadBalancer;
+import com.jiquan.rpc.loadbalance.impl.MinimumResponseTimeLoadBalancer;
 import com.jiquan.rpc.transport.message.RpcRequest;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,8 +39,9 @@ public class RpcBootstrap {
 	private String appName = "default name";
 	private RegistryConfig registryConfig;
 	private ProtocolConfig protocolConfig;
-	public static final int PORT = 8090;
+	public static final int PORT = 8093;
 	public static final IdGenerator ID_GENERATOR = new IdGenerator(1, 2);
+	public static String COMPRESS_TYPE = "gzip";
 	public static String SERIALIZE_TYPE = "hessian";
 	public static LoadBalancer LOAD_BALANCE;
 	public static final ThreadLocal<RpcRequest> REQUEST_THREAD_LOCAL = new ThreadLocal<>();
@@ -52,6 +54,8 @@ public class RpcBootstrap {
 	public static final Map<String, ServiceConfig<?>> SERVICE_LIST = new ConcurrentHashMap<>(16);
 	// Define a global external pending completableFuture
 	public static final Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
+	public final static TreeMap<Long, Channel> ANSWER_TIME_CACHE = new TreeMap<>();
+
 
 	private RpcBootstrap() {
 		// TODO initialization
@@ -82,7 +86,8 @@ public class RpcBootstrap {
 		// Try to use registryConfig to get a registration center, which is a bit of a factory design pattern
 		this.registry = registryConfig.getRegistry();
 		// the first time when the client tries to registry with registryConfig, RpcBootstrap will create a global instance LoadBalancer
-		LOAD_BALANCE = new ConsistentHashLoadBalancer();
+//		LOAD_BALANCE = new ConsistentHashLoadBalancer();
+		LOAD_BALANCE = new MinimumResponseTimeLoadBalancer();
 		return this;
 	}
 
@@ -121,6 +126,7 @@ public class RpcBootstrap {
 		// In this method, can we get the relevant configuration items - registration center
 		// Configure the reference to facilitate generation of proxy objects when the get method is called in the future
 		// 1. The reference needs a registration center
+		HeartbeatDetector.detectHeartbeat(reference.getInterfaceRef().getName());
 		reference.setRegistry(registry);
 		return this;
 	}

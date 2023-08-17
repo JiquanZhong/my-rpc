@@ -44,23 +44,31 @@ public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
 		byteBuf.writeByte(rpcRequest.getCompressType());
 		// 8 bytes request id
 		byteBuf.writeLong(rpcRequest.getRequestId());
-		// fill the request body
-		Serializer serializer = SerializerFactory.getSerializer(rpcRequest.getSerializeType()).getSerializer();
-		byte[] body = serializer.serialize(rpcRequest.getRequestPayload());
+		byteBuf.writeLong(rpcRequest.getTimeStamp());
 
-		Compressor compressor = CompressorFactory.getCompressor(rpcRequest.getCompressType()).getCompressor();
-		body = compressor.compress(body);
-		if(log.isDebugEnabled()){
-			log.debug("Compress of request [{}] is done",rpcRequest.getRequestId());
+		// fill the request body
+		byte[] body = null;
+		if(rpcRequest.getRequestPayload() != null){
+			body = SerializerFactory.getSerializer(rpcRequest.getSerializeType())
+					.getSerializer()
+					.serialize(rpcRequest.getRequestPayload());
+
+			body = CompressorFactory.getCompressor(rpcRequest.getCompressType())
+					.getCompressor()
+					.compress(body);
+			if(log.isDebugEnabled()){
+				log.debug("Compress of request [{}] is done",rpcRequest.getRequestId());
+			}
 		}
 
 		if(body != null) byteBuf.writeBytes(body);
 
 		int bodyLength = body == null ? 0 : body.length;
+
 		// mark the current writer pointer
 		int writerIndex = byteBuf.writerIndex();
 		byteBuf.writerIndex(MessageFormatConstant.MAGIC.length
-						   + MessageFormatConstant.VERSION_LENGTH + MessageFormatConstant.HEADER_FIELD_LENGTH
+									+ MessageFormatConstant.VERSION_LENGTH + MessageFormatConstant.HEADER_FIELD_LENGTH
 						   );
 		byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
 		// move the writer pointer back to the marked position

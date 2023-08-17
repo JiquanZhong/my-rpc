@@ -11,6 +11,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+import java.util.Random;
+
 /**
  * <pre>
  *   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21   22
@@ -22,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
  *   |                                                                                                             |
  *   +--------------------------------------------------------------------------------------------------------+---+
  * </pre>
+ *
  * @author ZHONG Jiquan
  * @year 2023
  */
@@ -38,20 +42,26 @@ public class RpcResponseEncoder extends MessageToByteEncoder<RpcResponse> {
 		byteBuf.writeByte(rpcResponse.getSerializeType());
 		byteBuf.writeByte(rpcResponse.getCompressType());
 		byteBuf.writeLong(rpcResponse.getRequestId());
+		byteBuf.writeLong(rpcResponse.getTimeStamp());
 
-		// Serialize the response
-		Serializer serializer = SerializerFactory
-				.getSerializer(rpcResponse.getSerializeType()).getSerializer();
-		byte[] body = serializer.serialize(rpcResponse.getBody());
+		byte[] body = null;
 
-		// compress
-		Compressor compressor = CompressorFactory.getCompressor(rpcResponse.getCompressType()).getCompressor();
-		body = compressor.compress(body);
-		if(log.isDebugEnabled()){
-			log.debug("Compress of response [{}] is done",rpcResponse.getRequestId());
+		if(rpcResponse.getBody() != null){
+			// Serialize the response
+			body = SerializerFactory.getSerializer(rpcResponse.getSerializeType())
+					.getSerializer()
+					.serialize(rpcResponse.getBody());
+
+			// compress
+			Compressor compressor = CompressorFactory.getCompressor(rpcResponse.getCompressType()).getCompressor();
+			body = compressor.compress(body);
+
+			if(log.isDebugEnabled()) {
+				log.debug("Compress of response [{}] is done", rpcResponse.getRequestId());
+			}
 		}
 
-		if(body != null){
+		if(body != null) {
 			byteBuf.writeBytes(body);
 		}
 		int bodyLength = body == null ? 0 : body.length;
@@ -63,8 +73,11 @@ public class RpcResponseEncoder extends MessageToByteEncoder<RpcResponse> {
 		byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
 		byteBuf.writerIndex(writerIndex);
 
-		if(log.isDebugEnabled()){
-			log.debug("The response [{}] is encoded",rpcResponse.getRequestId());
+		if(log.isDebugEnabled()) {
+			log.debug("The response [{}] is encoded", rpcResponse.getRequestId());
 		}
+
+		// network delay
+		Thread.sleep((long) (50L * Math.random()));
 	}
 }

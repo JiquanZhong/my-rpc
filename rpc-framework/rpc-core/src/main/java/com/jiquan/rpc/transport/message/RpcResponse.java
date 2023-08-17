@@ -18,6 +18,7 @@ public class RpcResponse {
 	private long requestId;
 	private byte compressType;
 	private byte serializeType;
+	private long timeStamp;
 	// 1: success 2: fail
 	private byte code;
 	// object of response

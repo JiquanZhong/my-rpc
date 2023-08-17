@@ -2,6 +2,7 @@ package com.jiquan.rpc.channelhandler.handler;
 
 import com.jiquan.rpc.RpcBootstrap;
 import com.jiquan.rpc.ServiceConfig;
+import com.jiquan.rpc.enumeration.RequestType;
 import com.jiquan.rpc.enumeration.RespCode;
 import com.jiquan.rpc.transport.message.RequestPayload;
 import com.jiquan.rpc.transport.message.RpcRequest;
@@ -24,10 +25,16 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<RpcRequest> {
 		// 1. get the request payload
 		RequestPayload requestPayload = rpcRequest.getRequestPayload();
 		// 2. invoke method according to the content of payload
-		Object result = callTargetMethod(requestPayload);
-		if(log.isDebugEnabled()){
-			log.debug("The method of request [{}] is invoked",rpcRequest.getRequestId());
+		Object result = null;
+
+		if(rpcRequest.getRequestType() != RequestType.HEARTBEAT.getId()){
+			result = callTargetMethod(requestPayload);
+			if(log.isDebugEnabled()){
+				log.debug("The method of request [{}] is invoked",rpcRequest.getRequestId());
+			}
 		}
+
+
 
 		RpcResponse rpcResponse = new RpcResponse();
 		rpcResponse.setCode(RespCode.SUCCESS.getCode());

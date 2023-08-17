@@ -16,7 +16,8 @@ import java.util.concurrent.CompletableFuture;
 public class MySimpleChannelInboundHandler extends SimpleChannelInboundHandler<RpcResponse> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse) throws Exception {
-		Object returnValue = rpcResponse.getBody();
+		Object returnValue = rpcResponse.getBody() == null ? new Object() : rpcResponse.getBody();
+
 		CompletableFuture<Object> completableFuture = RpcBootstrap.PENDING_REQUEST.get(rpcResponse.getRequestId());
 		completableFuture.complete(returnValue);
 		if(log.isDebugEnabled()){
