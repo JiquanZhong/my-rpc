@@ -5,6 +5,7 @@ import com.jiquan.exceptions.DiscoveryException;
 import com.jiquan.rpc.RpcBootstrap;
 import com.jiquan.rpc.ServiceConfig;
 import com.jiquan.rpc.discovery.AbstractRegistry;
+import com.jiquan.rpc.watcher.UpAndDownWatcher;
 import com.jiquan.utils.NetUtils;
 import com.jiquan.utils.ZookeeperNode;
 import com.jiquan.utils.ZookeeperUtils;
@@ -75,11 +76,11 @@ public class ZookeeperRegistry extends AbstractRegistry {
 	@Override
 	public List<InetSocketAddress> lookup(String serviceName) {
 		String serviceNode = Constant.BASE_PROVIDER_PATH + "/" + serviceName;
-		List<String> children = ZookeeperUtils.getChildren(zookeeper, serviceNode, null);
+		List<String> children = ZookeeperUtils.getChildren(zookeeper, serviceNode, new UpAndDownWatcher());
 		List<InetSocketAddress> inetSocketAddresses = children.stream().map(ipString -> {
 			String[] ipAndPort = ipString.split(":");
 			String ip = ipAndPort[0];
-			int port = Integer.valueOf(ipAndPort[1]);
+			int port = Integer.parseInt(ipAndPort[1]);
 			return new InetSocketAddress(ip, port);
 		}).toList();
 

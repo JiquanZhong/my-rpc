@@ -11,12 +11,11 @@ import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author ZHONG Jiquan
@@ -52,36 +51,49 @@ public class HeartbeatDetector {
 
 			Map<InetSocketAddress, Channel> cache = RpcBootstrap.CHANNEL_CACHE;
 			for(Map.Entry<InetSocketAddress, Channel> entry : cache.entrySet()) {
-				Channel channel = entry.getValue();
-				long startTime = System.currentTimeMillis();
+				int tryTimes = 3;
+				while (tryTimes > 0){
+					Channel channel = entry.getValue();
+					long startTime = System.currentTimeMillis();
 
-				RpcRequest rpcRequest = RpcRequest.builder()
-						.requestId(RpcBootstrap.ID_GENERATOR.getId())
-						.compressType(CompressorFactory.getCompressor(RpcBootstrap.COMPRESS_TYPE).getCode())
-						.requestType(RequestType.HEARTBEAT.getId())
-						.serializeType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
-						.timeStamp(startTime)
-						.build();
+					RpcRequest rpcRequest = RpcRequest.builder()
+							.requestId(RpcBootstrap.ID_GENERATOR.getId())
+							.compressType(CompressorFactory.getCompressor(RpcBootstrap.COMPRESS_TYPE).getCode())
+							.requestType(RequestType.HEARTBEAT.getId())
+							.serializeType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
+							.timeStamp(startTime)
+							.build();
 
-				CompletableFuture<Object> completableFuture = new CompletableFuture<>();
-				RpcBootstrap.PENDING_REQUEST.put(rpcRequest.getRequestId(), completableFuture);
+					CompletableFuture<Object> completableFuture = new CompletableFuture<>();
+					RpcBootstrap.PENDING_REQUEST.put(rpcRequest.getRequestId(), completableFuture);
 
-				channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
-					if(!promise.isSuccess()) {
-						completableFuture.completeExceptionally(promise.cause());
+					channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
+						if(!promise.isSuccess()) {
+							completableFuture.completeExceptionally(promise.cause());
+						}
+					});
+
+					Long endTime = 0L;
+					try {
+						completableFuture.get(1, TimeUnit.SECONDS);
+						endTime = System.currentTimeMillis();
+					} catch(InterruptedException | ExecutionException | TimeoutException e) {
+						tryTimes--;
+						log.error("error of connection with {}, trying to connect the {} times", entry.getKey(), 3-tryTimes);
+						if(tryTimes == 0) RpcBootstrap.CHANNEL_CACHE.remove(entry.getKey());
+
+						try {
+							Thread.sleep(new Random().nextInt(50));
+						} catch(InterruptedException ex) {
+							throw new RuntimeException(ex);
+						}
+						continue;
 					}
-				});
-
-				Long endTime = 0L;
-				try {
-					completableFuture.get();
-					endTime = System.currentTimeMillis();
-				} catch(InterruptedException | ExecutionException e) {
-					throw new RuntimeException(e);
+					Long time = endTime - startTime;
+					RpcBootstrap.ANSWER_TIME_CACHE.put(time, channel);
+					log.debug("HEARTBEAT: the delay time with {} is {} ms", entry.getKey(), time);
+					break;
 				}
-				Long time = endTime - startTime;
-				RpcBootstrap.ANSWER_TIME_CACHE.put(time, channel);
-				log.debug("HEARTBEAT: the delay time with {} is {} ms", entry.getKey(), time);
 			}
 		}
 	}

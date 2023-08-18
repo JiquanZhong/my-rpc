@@ -47,11 +47,6 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
 			return circle.get(hash);
 		}
 
-		@Override
-		public void reBalance() {
-
-		}
-
 		private void addNodeToCircle(InetSocketAddress address){
 			for(int i = 0; i < virtualNodesPerAddress; i++){
 				int hash = hash(address.toString() + "-" + i);

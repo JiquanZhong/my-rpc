@@ -1,6 +1,7 @@
 package com.jiquan.rpc.loadbalance;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * @author ZHONG Jiquan
@@ -13,4 +14,11 @@ public interface LoadBalancer {
 	 * @return
 	 */
 	InetSocketAddress selectServiceAddress(String serviceName);
+
+	/**
+	 * reload all the nodes
+	 * @param serviceName
+	 * @param addresses
+	 */
+	void reload(String serviceName, List<InetSocketAddress> addresses);
 }

@@ -9,6 +9,7 @@ import com.jiquan.rpc.discovery.Registry;
 import com.jiquan.rpc.discovery.RegistryConfig;
 import com.jiquan.rpc.loadbalance.LoadBalancer;
 import com.jiquan.rpc.loadbalance.impl.MinimumResponseTimeLoadBalancer;
+import com.jiquan.rpc.loadbalance.impl.RoundRobinLoadBalancer;
 import com.jiquan.rpc.transport.message.RpcRequest;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -39,7 +40,7 @@ public class RpcBootstrap {
 	private String appName = "default name";
 	private RegistryConfig registryConfig;
 	private ProtocolConfig protocolConfig;
-	public static final int PORT = 8093;
+	public static final int PORT = 8090;
 	public static final IdGenerator ID_GENERATOR = new IdGenerator(1, 2);
 	public static String COMPRESS_TYPE = "gzip";
 	public static String SERIALIZE_TYPE = "hessian";
@@ -87,7 +88,8 @@ public class RpcBootstrap {
 		this.registry = registryConfig.getRegistry();
 		// the first time when the client tries to registry with registryConfig, RpcBootstrap will create a global instance LoadBalancer
 //		LOAD_BALANCE = new ConsistentHashLoadBalancer();
-		LOAD_BALANCE = new MinimumResponseTimeLoadBalancer();
+//		LOAD_BALANCE = new MinimumResponseTimeLoadBalancer();
+		LOAD_BALANCE = new RoundRobinLoadBalancer();
 		return this;
 	}
 

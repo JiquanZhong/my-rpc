@@ -13,9 +13,4 @@ public interface Selector {
 	 * @return
 	 */
 	InetSocketAddress getNext();
-
-	/**
-	 * need to recalculate the load because the nodes of service is changed
-	 */
-	void reBalance();
 }

@@ -26,5 +26,10 @@ public abstract class AbstractLoadBalancer implements LoadBalancer{
 		return selector.getNext();
 	}
 
+	@Override
+	public void reload(String serviceName, List<InetSocketAddress> addresses) {
+		cache.put(serviceName, getSelector(addresses));
+	}
+
 	protected abstract Selector getSelector(List<InetSocketAddress> serviceList);
 }
