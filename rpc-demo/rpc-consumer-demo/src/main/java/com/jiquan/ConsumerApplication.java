@@ -1,6 +1,7 @@
 package com.jiquan;
 
 import com.jiquan.api.HelloAPI;
+import com.jiquan.api.HelloAPI2;
 import com.jiquan.rpc.ReferenceConfig;
 import com.jiquan.rpc.discovery.RegistryConfig;
 import com.jiquan.rpc.RpcBootstrap;
@@ -16,8 +17,8 @@ import java.util.List;
 @Slf4j
 public class ConsumerApplication {
 	public static void main(String[] args) {
-		ReferenceConfig<HelloAPI> reference = new ReferenceConfig<>();
-		reference.setInterface(HelloAPI.class);
+		ReferenceConfig<HelloAPI2> reference = new ReferenceConfig<>();
+		reference.setInterface(HelloAPI2.class);
 
 		RpcBootstrap.getInstance()
 				// registry the service in zookeeper
@@ -26,7 +27,7 @@ public class ConsumerApplication {
 				.reference(reference);
 
 		// get the proxy of service
-		HelloAPI helloAPI = reference.get();
+		HelloAPI2 helloAPI = reference.get();
 
 		while (true) {
 			try {

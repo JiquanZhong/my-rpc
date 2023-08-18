@@ -6,15 +6,15 @@ package com.jiquan.rpc;
  */
 public class ServiceConfig<T> {
 	// the service interface that the provider has implemented
-	private Class<T> interfaceProvider;
+	private Class<?> interfaceProvider;
 	// the instance of interface
 	private Object ref;
 
-	public Class<T> getInterface() {
+	public Class<?> getInterface() {
 		return interfaceProvider;
 	}
 
-	public void setInterface(Class<T> interfaceProvider) {
+	public void setInterface(Class<?> interfaceProvider) {
 		this.interfaceProvider = interfaceProvider;
 	}
 

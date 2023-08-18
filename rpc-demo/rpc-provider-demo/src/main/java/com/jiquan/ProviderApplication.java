@@ -25,7 +25,8 @@ public class ProviderApplication {
 				// put the configuration online
 				.protocol(new ProtocolConfig("hessian"))
 				// initialize the service
-				.publish(service)
+//				.publish(service)
+				.scan("com.jiquan.impl")
 				// start the service
 				.start();
 	}

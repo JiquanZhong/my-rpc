@@ -1,6 +1,7 @@
 package com.jiquan.rpc;
 
 import com.jiquan.IdGenerator;
+import com.jiquan.rpc.annotation.RpcAPI;
 import com.jiquan.rpc.channelhandler.handler.MethodCallHandler;
 import com.jiquan.rpc.channelhandler.handler.RpcRequestDecoder;
 import com.jiquan.rpc.channelhandler.handler.RpcResponseEncoder;
@@ -22,12 +23,17 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author ZHONG Jiquan
@@ -95,6 +101,7 @@ public class RpcBootstrap {
 
 	/**
 	 * Configure the protocol used by the currently exposed service
+	 *
 	 * @param protocolConfig protocol encapsulation
 	 * @return this current instance
 	 */
@@ -105,9 +112,9 @@ public class RpcBootstrap {
 	}
 
 
-
 	/**
 	 * Publish the service, implement the interface and register it with the service center
+	 *
 	 * @param service encapsulated service that needs to be published
 	 * @return this current instance
 	 */
@@ -133,7 +140,7 @@ public class RpcBootstrap {
 		return this;
 	}
 
-	public Registry getRegistry(){
+	public Registry getRegistry() {
 		return registry;
 	}
 
@@ -167,15 +174,111 @@ public class RpcBootstrap {
 			ChannelFuture channelFuture = serverBootstrap.bind(PORT).sync();
 
 			channelFuture.channel().closeFuture().sync();
-		}catch(InterruptedException e){
+		} catch(InterruptedException e) {
 			e.printStackTrace();
-		}finally {
+		} finally {
 			try {
 				boss.shutdownGracefully().sync();
 				worker.shutdownGracefully().sync();
-			} catch (InterruptedException e) {
+			} catch(InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public RpcBootstrap scan(String packageName) {
+		List<String> classNames = getAllClassNames(packageName);
+		List<Class<?>> classes = classNames.stream()
+				.map(className -> {
+					try {
+						return Class.forName(className);
+					} catch (ClassNotFoundException e) {
+						throw new RuntimeException(e);
+					}
+				}).filter(clazz -> clazz.getAnnotation(RpcAPI.class) != null)
+				.collect(Collectors.toList());
+
+		for (Class<?> clazz : classes) {
+			Class<?>[] interfaces = clazz.getInterfaces();
+			Object instance = null;
+			try {
+				instance = clazz.getConstructor().newInstance();
+			} catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+					 NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+
+			List<ServiceConfig<?>> serviceConfigs = new ArrayList<>();
+			for (Class<?> anInterface : interfaces) {
+				ServiceConfig<?> serviceConfig = new ServiceConfig<>();
+				serviceConfig.setInterface(anInterface);
+				serviceConfig.setRef(instance);
+				if (log.isDebugEnabled()){
+					log.debug("scanning the package and publish service {}",anInterface);
+				}
+				publish(serviceConfig);
+			}
+
+		}
+		return this;
+	}
+
+	private List<String> getAllClassNames(String packageName) {
+		// com.xxx.yyy -> E://xxx/xww/sss/com/xxx/yyy
+		String basePath = packageName.replaceAll("\\.", "/");
+		URL url = ClassLoader.getSystemClassLoader().getResource(basePath);
+		if(url == null) {
+			throw new RuntimeException("Cannot find the path");
+		}
+		String absolutePath = url.getPath();
+		return recursionFile(absolutePath, new ArrayList<>(), basePath);
+	}
+
+	private List<String> recursionFile(String absolutePath, List<String> classNames, String basePath) {
+		// 获取文件
+		File file = new File(absolutePath);
+		// 判断文件是否是文件夹
+		if(file.isDirectory()) {
+			// 找到文件夹的所有的文件
+			File[] children = file.listFiles(pathname -> pathname.isDirectory() || pathname.getPath().contains(".class"));
+			if(children == null || children.length == 0) {
+				return classNames;
+			}
+			for(File child : children) {
+				if(child.isDirectory()) {
+					recursionFile(child.getAbsolutePath(), classNames, basePath);
+				} else {
+					// 文件 --> 类的权限定名称
+					String className = getClassNameByAbsolutePath(child.getAbsolutePath(), basePath);
+					classNames.add(className);
+				}
+			}
+
+		} else {
+			// 文件 --> 类的权限定名称
+			String className = getClassNameByAbsolutePath(absolutePath, basePath);
+			classNames.add(className);
+		}
+		return classNames;
+	}
+
+	private String getClassNameByAbsolutePath(String absolutePath, String basePath) {
+		String os = System.getProperty("os.name").toLowerCase();
+		String fileName;
+		if(os.contains("win")){
+			fileName = absolutePath
+					.substring(absolutePath.indexOf(basePath.replaceAll("/","\\\\")))
+					.replaceAll("\\\\",".");
+		}else{
+			fileName = absolutePath.substring(absolutePath.indexOf(basePath)).replaceAll("/", ".");
+		}
+
+		fileName = fileName.substring(0,fileName.indexOf(".class"));
+		return fileName;
+	}
+
+	public static void main(String[] args) {
+		List<String> allClassNames = RpcBootstrap.getInstance().getAllClassNames("com.jiquan.rpc.compress");
+		System.out.println(allClassNames);
 	}
 }
