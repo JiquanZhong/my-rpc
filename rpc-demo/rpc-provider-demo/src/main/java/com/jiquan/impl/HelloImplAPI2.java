@@ -11,7 +11,7 @@ import java.util.List;
  * @author ZHONG Jiquan
  * @year 2023
  */
-@RpcAPI
+//@RpcAPI
 public class HelloImplAPI2 implements HelloAPI2 {
 	@Override
 	public List<String> sayHello(String msg) {

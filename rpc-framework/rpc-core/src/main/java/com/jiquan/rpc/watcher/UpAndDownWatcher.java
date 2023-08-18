@@ -57,7 +57,7 @@ public class UpAndDownWatcher implements Watcher {
 				}
 			}
 
-			LoadBalancer loadBalance = RpcBootstrap.LOAD_BALANCE;
+			LoadBalancer loadBalance = RpcBootstrap.getInstance().getConfiguration().getLoadBalancer();
 			loadBalance.reload(serviceName, addresses);
 		}
 	}

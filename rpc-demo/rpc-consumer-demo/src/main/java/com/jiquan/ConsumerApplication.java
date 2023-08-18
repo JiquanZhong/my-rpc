@@ -17,17 +17,17 @@ import java.util.List;
 @Slf4j
 public class ConsumerApplication {
 	public static void main(String[] args) {
-		ReferenceConfig<HelloAPI2> reference = new ReferenceConfig<>();
-		reference.setInterface(HelloAPI2.class);
+		ReferenceConfig<HelloAPI> reference = new ReferenceConfig<>();
+		reference.setInterface(HelloAPI.class);
 
 		RpcBootstrap.getInstance()
 				// registry the service in zookeeper
 				.application("first-rpc-consumer")
-				.registry(new RegistryConfig("zookeeper://10.188.78.86:2181,10.188.78.86:2182,10.188.78.86:2183"))
+				.registry(new RegistryConfig("zookeeper://localhost:2181"))
 				.reference(reference);
 
 		// get the proxy of service
-		HelloAPI2 helloAPI = reference.get();
+		HelloAPI helloAPI = reference.get();
 
 		while (true) {
 			try {

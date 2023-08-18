@@ -4,6 +4,7 @@ import com.jiquan.exceptions.DiscoveryException;
 import com.jiquan.exceptions.NetworkException;
 import com.jiquan.rpc.NettyBootstrapInitializer;
 import com.jiquan.rpc.RpcBootstrap;
+import com.jiquan.rpc.compress.CompressorFactory;
 import com.jiquan.rpc.discovery.Registry;
 import com.jiquan.rpc.enumeration.RequestType;
 import com.jiquan.rpc.serialize.SerializerFactory;
@@ -53,10 +54,10 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
 		// todo needs to process the request id and various types
 		RpcRequest rpcRequest = RpcRequest.builder()
-				.requestId(RpcBootstrap.ID_GENERATOR.getId())
-				.compressType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
+				.requestId(RpcBootstrap.getInstance().getConfiguration().getIdGenerator().getId())
+				.compressType(CompressorFactory.getCompressor(RpcBootstrap.getInstance().getConfiguration().getCompressType()).getCode())
 				.requestType(RequestType.REQUEST.getId())
-				.serializeType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
+				.serializeType(SerializerFactory.getSerializer(RpcBootstrap.getInstance().getConfiguration().getSerializeType()).getCode())
 				.timeStamp(new Date().getTime())
 				.requestPayload(requestPayload)
 				.build();
@@ -66,7 +67,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 		// 1. Discovery services, from the registry, look for an available service
 		//		InetSocketAddress address = registry.lookup(interfaceRef.getName());
 		// implementation of load balance
-		InetSocketAddress address = RpcBootstrap.LOAD_BALANCE.selectServiceAddress(interfaceRef.getName());
+		InetSocketAddress address = RpcBootstrap.getInstance().getConfiguration().getLoadBalancer().selectServiceAddress(interfaceRef.getName());
 		// should remove the request ThreadLocal
 		RpcBootstrap.REQUEST_THREAD_LOCAL.remove();
 
@@ -81,8 +82,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 			log.debug("Obtained the connection channel established with {}, ready to send data.", address);
 		}
 
-
-		RpcBootstrap.SERIALIZE_TYPE = SerializerFactory.CODE_STRING_MAP.get(rpcRequest.getSerializeType());
+		RpcBootstrap.getInstance().getConfiguration().setSerializeType(SerializerFactory.CODE_STRING_MAP.get(rpcRequest.getSerializeType()));
 
 		/*
 		 * ------------------synchronization-------------------------

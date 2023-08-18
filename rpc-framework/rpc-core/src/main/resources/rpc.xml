@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+        <!DOCTYPE configuration SYSTEM "rpc-config.dtd">
+<configuration>
+
+    <port>8089</port>
+    <appName>yrpc-default-appName</appName>
+    <registry url="zookeeper://127.0.0.1:2181"/>
+
+    <!-- 二选一 -->
+    <serializeType type="hessian"/>
+    <serializer class="com.jiquan.rpc.serialize.impl.HessianSerializer"/>
+
+    <!-- 二选一 -->
+    <compressType type="gzip"/>
+    <compressor class="com.jiquan.rpc.compress.impl.GzipCompressor"/>
+
+    <!-- 二选一 -->
+    <loadBalancer class="com.jiquan.rpc.loadbalance.impl.MinimumResponseTimeLoadBalancer"/>
+    <loadBalancerType type="minimumResponseTime"/>
+
+    <idGenerator class="com.jiquan.IdGenerator" dataCenterId="2" MachineId="4"/>
+
+</configuration>

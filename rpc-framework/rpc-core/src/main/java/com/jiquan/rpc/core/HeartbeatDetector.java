@@ -1,5 +1,6 @@
 package com.jiquan.rpc.core;
 
+import com.jiquan.rpc.Configuration;
 import com.jiquan.rpc.NettyBootstrapInitializer;
 import com.jiquan.rpc.RpcBootstrap;
 import com.jiquan.rpc.compress.CompressorFactory;
@@ -57,10 +58,10 @@ public class HeartbeatDetector {
 					long startTime = System.currentTimeMillis();
 
 					RpcRequest rpcRequest = RpcRequest.builder()
-							.requestId(RpcBootstrap.ID_GENERATOR.getId())
-							.compressType(CompressorFactory.getCompressor(RpcBootstrap.COMPRESS_TYPE).getCode())
+							.requestId(RpcBootstrap.getInstance().getConfiguration().getIdGenerator().getId())
+							.compressType(CompressorFactory.getCompressor(RpcBootstrap.getInstance().getConfiguration().getCompressType()).getCode())
 							.requestType(RequestType.HEARTBEAT.getId())
-							.serializeType(SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_TYPE).getCode())
+							.serializeType(SerializerFactory.getSerializer(RpcBootstrap.getInstance().getConfiguration().getSerializeType()).getCode())
 							.timeStamp(startTime)
 							.build();
 

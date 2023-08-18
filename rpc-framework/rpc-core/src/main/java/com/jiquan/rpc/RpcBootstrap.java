@@ -41,19 +41,12 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class RpcBootstrap {
+	// Global config
+	private final Configuration configuration;
 	// singleton
 	private static final RpcBootstrap rpcBootStrap = new RpcBootstrap();
-	private String appName = "default name";
-	private RegistryConfig registryConfig;
-	private ProtocolConfig protocolConfig;
-	public static final int PORT = 8090;
-	public static final IdGenerator ID_GENERATOR = new IdGenerator(1, 2);
-	public static String COMPRESS_TYPE = "gzip";
-	public static String SERIALIZE_TYPE = "hessian";
-	public static LoadBalancer LOAD_BALANCE;
 	public static final ThreadLocal<RpcRequest> REQUEST_THREAD_LOCAL = new ThreadLocal<>();
 
-	private Registry registry;
 
 	// Connection cache, if you use a class like InetSocketAddress as the key, be sure to see if he has rewritten the equals method and toString method
 	public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
@@ -65,7 +58,7 @@ public class RpcBootstrap {
 
 
 	private RpcBootstrap() {
-		// TODO initialization
+		configuration = new Configuration();
 	}
 
 	public static RpcBootstrap getInstance() {
@@ -77,7 +70,7 @@ public class RpcBootstrap {
 	 * @return
 	 */
 	public RpcBootstrap application(String appName) {
-		this.appName = appName;
+		configuration.setAppName(appName);
 		return this;
 	}
 
@@ -91,11 +84,13 @@ public class RpcBootstrap {
 		// A zookeeper instance is maintained here, but if written in this way, zookeeper will be coupled with the current project
 		// We actually hope that we can expand more different implementations in the future
 		// Try to use registryConfig to get a registration center, which is a bit of a factory design pattern
-		this.registry = registryConfig.getRegistry();
+		configuration.setRegistryConfig(registryConfig);
 		// the first time when the client tries to registry with registryConfig, RpcBootstrap will create a global instance LoadBalancer
-//		LOAD_BALANCE = new ConsistentHashLoadBalancer();
-//		LOAD_BALANCE = new MinimumResponseTimeLoadBalancer();
-		LOAD_BALANCE = new RoundRobinLoadBalancer();
+		return this;
+	}
+
+	public RpcBootstrap loadBalancer(LoadBalancer loadBalancer) {
+		configuration.setLoadBalancer(loadBalancer);
 		return this;
 	}
 
@@ -106,7 +101,7 @@ public class RpcBootstrap {
 	 * @return this current instance
 	 */
 	public RpcBootstrap protocol(ProtocolConfig protocolConfig) {
-		this.protocolConfig = protocolConfig;
+		configuration.setProtocolConfig(protocolConfig);
 		if(log.isDebugEnabled()) log.debug("Current app is using {} for serialization", protocolConfig.toString());
 		return this;
 	}
@@ -119,7 +114,7 @@ public class RpcBootstrap {
 	 * @return this current instance
 	 */
 	public RpcBootstrap publish(ServiceConfig service) {
-		registry.register(service);
+		configuration.getRegistryConfig().getRegistry().register(service);
 		SERVICE_LIST.put(service.getInterface().getName(), service);
 		return this;
 	}
@@ -136,12 +131,12 @@ public class RpcBootstrap {
 		// Configure the reference to facilitate generation of proxy objects when the get method is called in the future
 		// 1. The reference needs a registration center
 		HeartbeatDetector.detectHeartbeat(reference.getInterfaceRef().getName());
-		reference.setRegistry(registry);
+		reference.setRegistry(configuration.getRegistryConfig().getRegistry());
 		return this;
 	}
 
 	public Registry getRegistry() {
-		return registry;
+		return configuration.getRegistryConfig().getRegistry();
 	}
 
 	/**
@@ -171,7 +166,7 @@ public class RpcBootstrap {
 					});
 
 			// 4. Bind the serverBoostrap configuration to the port
-			ChannelFuture channelFuture = serverBootstrap.bind(PORT).sync();
+			ChannelFuture channelFuture = serverBootstrap.bind(configuration.getPort()).sync();
 
 			channelFuture.channel().closeFuture().sync();
 		} catch(InterruptedException e) {
@@ -275,6 +270,10 @@ public class RpcBootstrap {
 
 		fileName = fileName.substring(0,fileName.indexOf(".class"));
 		return fileName;
+	}
+
+	public Configuration getConfiguration(){
+		return configuration;
 	}
 
 	public static void main(String[] args) {

@@ -61,7 +61,7 @@ public class NacosRegistry extends AbstractRegistry {
 			ZookeeperUtils.createNode(zookeeper, zookeeperNode, null, CreateMode.PERSISTENT);
 		}
 
-		String node = parentNode + "/" + NetUtils.getIp() + ":" + RpcBootstrap.PORT;
+		String node = parentNode + "/" + NetUtils.getIp() + ":" + RpcBootstrap.getInstance().getConfiguration().getPort();
 		if(!ZookeeperUtils.exists(zookeeper, node, null)) {
 			ZookeeperNode zookeeperNode = new ZookeeperNode(node, null);
 			ZookeeperUtils.createNode(zookeeper, zookeeperNode, null, CreateMode.EPHEMERAL);
